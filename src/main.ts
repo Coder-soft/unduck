@@ -1,5 +1,7 @@
 import { bangs } from "./bang";
 import "./global.css";
+import { Search } from "lucide-react";
+import { supabase } from "./supabase";
 
 // Define popular search engines with their bang codes
 export const searchEngines = [
@@ -26,10 +28,15 @@ export function noSearchDefaultPageRender() {
   
   const app = document.querySelector<HTMLDivElement>("#app")!;
   app.innerHTML = `
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
-      <div class="content-container">
-        <h1>Und*ck</h1>
-        <p>DuckDuckGo's bang redirects are too slow. Add the following URL as a custom search engine to your browser. Enables <a href="https://duckduckgo.com/bang.html" target="_blank">all of DuckDuckGo's bangs.</a></p>
+    <div class="main-container">
+      <!-- 9-dots menu icon -->
+      <button id="menu-button" class="menu-button">
+        ⋮⋮⋮
+      </button>
+      
+      <!-- Settings panel (hidden by default) -->
+      <div id="settings-panel" class="settings-panel">
+        <h2>Settings</h2>
         
         <div class="engine-selector-container">
           <label for="default-engine">Default Search Engine:</label>
@@ -56,25 +63,46 @@ export function noSearchDefaultPageRender() {
         
         <div class="custom-engine-container">
           <button id="add-custom-engine" class="add-engine-button">+ Add Custom Search Engine</button>
-          <div id="custom-engine-form" class="custom-engine-form" style="display: none;">
-            <input type="text" id="custom-engine-name" placeholder="Engine Name (e.g. Google)" class="custom-engine-input" />
-            <input type="text" id="custom-engine-bang" placeholder="Bang (e.g. g)" class="custom-engine-input" />
-            <input type="text" id="custom-engine-url" placeholder="URL with {{{s}}} for query" class="custom-engine-input" />
+          <div id="custom-engine-form" class="custom-engine-form">
+            <input type="text" id="custom-engine-name" class="custom-engine-input" placeholder="Engine Name (e.g., Wikipedia)">
+            <input type="text" id="custom-engine-bang" class="custom-engine-input" placeholder="Bang (e.g., w)">
+            <input type="text" id="custom-engine-url" class="custom-engine-input" placeholder="URL (use {{{s}}} for query)">
             <button id="save-custom-engine" class="save-engine-button">Save</button>
             <button id="cancel-custom-engine" class="cancel-engine-button">Cancel</button>
           </div>
         </div>
+        
+        <p class="bang-info">You can use !bang redirects for any site, e.g., <code>!gh</code> for GitHub.</p>
       </div>
+
+      <div class="content-container">
+        <h1 class="main-title">Und*ck</h1>
+        <form id="search-form" class="search-form">
+          <span class="search-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          </span>
+          <input 
+            type="text" 
+            id="search-input"
+            class="search-input"
+            placeholder="Search or enter a bang (e.g. !gh t3dotgg)"
+          />
+          <div id="suggestions-container" class="suggestions-container"></div>
+        </form>
+      </div>
+      
       <footer class="footer">
         <a href="https://t3.chat" target="_blank">t3.chat</a>
         •
         <a href="https://x.com/theo" target="_blank">theo</a>
         •
-        <a href="https://github.com/t3dotgg/unduck" target="_blank">github</a>
+        <a href="https://github.com/t3dotgg/unduck" target="_blank">source</a>
       </footer>
     </div>
   `;
 
+  const menuButton = app.querySelector<HTMLButtonElement>("#menu-button")!;
+  const settingsPanel = app.querySelector<HTMLDivElement>("#settings-panel")!;
   const copyButton = app.querySelector<HTMLButtonElement>(".copy-button")!;
   const copyIcon = copyButton.querySelector("img")!;
   const urlInput = app.querySelector<HTMLInputElement>(".url-input")!;
@@ -86,24 +114,33 @@ export function noSearchDefaultPageRender() {
   const customEngineUrl = app.querySelector<HTMLInputElement>("#custom-engine-url")!;
   const saveCustomEngineButton = app.querySelector<HTMLButtonElement>("#save-custom-engine")!;
   const cancelCustomEngineButton = app.querySelector<HTMLButtonElement>("#cancel-custom-engine")!;
+  const searchForm = app.querySelector<HTMLFormElement>("#search-form")!;
+  const searchInput = app.querySelector<HTMLInputElement>("#search-input")!;
 
   // Update the URL input with the current domain
   urlInput.value = `${window.location.origin}?q=%s`;
 
-  copyButton.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(urlInput.value);
-    copyIcon.src = "/clipboard-check.svg";
-
-    setTimeout(() => {
-      copyIcon.src = "/clipboard.svg";
-    }, 2000);
-  });
-
+  // Add event listener for engine selector
   engineSelector.addEventListener("change", () => {
     localStorage.setItem("default-engine", engineSelector.value);
   });
 
-  // Custom engine functionality
+  // Add copy functionality
+  copyButton.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(urlInput.value);
+      copyIcon.src = "/check.svg";
+      copyButton.classList.add("copied");
+      setTimeout(() => {
+        copyIcon.src = "/clipboard.svg";
+        copyButton.classList.remove("copied");
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+    }
+  });
+
+  // Add custom engine form toggle
   addCustomEngineButton.addEventListener("click", () => {
     customEngineForm.style.display = "block";
     addCustomEngineButton.style.display = "none";
@@ -156,6 +193,111 @@ export function noSearchDefaultPageRender() {
     // Refresh the page to show the new engine
     location.reload();
   });
+
+  // Add menu toggle functionality
+  menuButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    settingsPanel.style.display = settingsPanel.style.display === "none" ? "block" : "none";
+  });
+
+  // Close settings panel when clicking outside
+  document.addEventListener("click", (e) => {
+    if (settingsPanel.style.display === "block" && 
+        !settingsPanel.contains(e.target as Node) && 
+        e.target !== menuButton) {
+      settingsPanel.style.display = "none";
+    }
+  });
+
+  // Add search form submission
+  searchForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    if (query) {
+      // Save search to Supabase
+      await saveSearchToSupabase(query);
+      window.location.href = `?q=${encodeURIComponent(query)}`;
+    }
+  });
+
+  // Add search input event listener for suggestions
+  let debounceTimer: number;
+  searchInput.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      showSearchSuggestions(searchInput.value.trim());
+    }, 300);
+  });
+
+  // Close suggestions when clicking outside
+  document.addEventListener("click", (e) => {
+    if (settingsPanel.style.display === "block" && 
+        !settingsPanel.contains(e.target as Node) && 
+        e.target !== menuButton) {
+      settingsPanel.style.display = "none";
+    }
+    
+    const suggestionsContainer = document.getElementById("suggestions-container");
+    if (suggestionsContainer && suggestionsContainer.style.display !== "none" &&
+        !searchForm.contains(e.target as Node)) {
+      suggestionsContainer.style.display = "none";
+    }
+  });
+}
+
+// Save search query to Supabase
+async function saveSearchToSupabase(query: string) {
+  try {
+    const { data, error } = await supabase
+      .from('searches')
+      .insert([{ query, created_at: new Date().toISOString() }]);
+    
+    if (error) {
+      console.error('Error saving search to Supabase:', error);
+    }
+  } catch (err) {
+    console.error('Error saving search to Supabase:', err);
+  }
+}
+
+// Show search suggestions based on input
+async function showSearchSuggestions(input: string) {
+  const suggestionsContainer = document.getElementById("suggestions-container");
+  if (!suggestionsContainer) return;
+  
+  if (input.length < 2) {
+    suggestionsContainer.style.display = "none";
+    return;
+  }
+  
+  try {
+    // Search for similar queries in Supabase
+    const { data, error } = await supabase
+      .from('searches')
+      .select('query')
+      .ilike('query', `%${input}%`)  // Case-insensitive partial match
+      .order('created_at', { ascending: false })
+      .limit(5);
+    
+    if (error) {
+      console.error('Error fetching suggestions:', error);
+      suggestionsContainer.style.display = "none";
+      return;
+    }
+    
+    if (data && data.length > 0) {
+      // Create suggestions list
+      suggestionsContainer.innerHTML = data
+        .map(item => `<div class="suggestion-item" onclick="document.getElementById('search-input').value='${item.query}'; document.getElementById('suggestions-container').style.display='none'; document.getElementById('search-form').submit();">${item.query}</div>`)
+        .join('');
+      suggestionsContainer.style.display = "block";
+    } else {
+      suggestionsContainer.style.display = "none";
+    }
+  } catch (err) {
+    console.error('Error showing suggestions:', err);
+    suggestionsContainer.style.display = "none";
+  }
 }
 
 const LS_DEFAULT_BANG = localStorage.getItem("default-bang") ?? "g";

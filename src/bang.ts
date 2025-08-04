@@ -29,6 +29,15 @@ export const bangs = [
     u: "https://www.bmw2002faq.com/search/?q={{{s}}}",
   },
   {
+    c: "AI",
+    d: "www.perplexity.ai",
+    r: 0,
+    s: "Perplexity",
+    sc: "AI",
+    t: "ppx",
+    u: "https://www.perplexity.ai/search?q={{{s}}}",
+  },
+  {
     c: "Entertainment",
     d: "boxofficemojo.com",
     r: 0,

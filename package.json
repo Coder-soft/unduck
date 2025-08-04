@@ -17,6 +17,8 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.53.0",
+    "lucide-react": "^0.536.0",
     "vite-plugin-pwa": "^0.21.1"
   }
 }

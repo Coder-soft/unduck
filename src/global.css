@@ -202,6 +202,74 @@ textarea {
   color: #333;
 }
 
+/* Custom engine styles */
+.custom-engine-container {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.add-engine-button {
+  padding: 10px 15px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-engine-button:hover {
+  background-color: #e0e0e0;
+}
+
+.custom-engine-form {
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f9f9f9;
+}
+
+.custom-engine-input {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.save-engine-button,
+.cancel-engine-button {
+  padding: 8px 12px;
+  margin: 0 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.save-engine-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.save-engine-button:hover {
+  background-color: #45a049;
+}
+
+.cancel-engine-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.cancel-engine-button:hover {
+  background-color: #da190b;
+}
+
 @media (prefers-color-scheme: dark) {
   body {
     color: #ddd;
@@ -258,5 +326,43 @@ textarea {
 
   .copy-button:active {
     background: #333;
+  }
+
+  /* Dark mode custom engine styles */
+  .add-engine-button {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #ddd;
+  }
+
+  .add-engine-button:hover {
+    background-color: #3a3a3a;
+  }
+
+  .custom-engine-form {
+    border-color: #444;
+    background: #1e1e1e;
+  }
+
+  .custom-engine-input {
+    border-color: #444;
+    background-color: #191919;
+    color: #fff;
+  }
+
+  .save-engine-button {
+    background-color: #388e3c;
+  }
+
+  .save-engine-button:hover {
+    background-color: #337a36;
+  }
+
+  .cancel-engine-button {
+    background-color: #d32f2f;
+  }
+
+  .cancel-engine-button:hover {
+    background-color: #b71c1c;
   }
 }

@@ -1,13 +1,41 @@
 import { bangs } from "./bang";
 import "./global.css";
 
+// Define popular search engines with their bang codes
+const searchEngines = [
+  { name: "Google", bang: "g", url: "https://www.google.com/search?q={{{s}}}" },
+  { name: "DuckDuckGo", bang: "d", url: "https://duckduckgo.com/?q={{{s}}}" },
+  { name: "Bing", bang: "b", url: "https://www.bing.com/search?q={{{s}}}" },
+  { name: "Yahoo", bang: "y", url: "https://search.yahoo.com/search?p={{{s}}}" },
+  { name: "Yandex", bang: "ya", url: "https://yandex.com/search/?text={{{s}}}" },
+  { name: "Ecosia", bang: "e", url: "https://www.ecosia.org/search?q={{{s}}}" },
+  { name: "Startpage", bang: "sp", url: "https://www.startpage.com/sp/search?query={{{s}}}" },
+  { name: "Qwant", bang: "q", url: "https://www.qwant.com/?q={{{s}}}" },
+  { name: "Brave", bang: "br", url: "https://search.brave.com/search?q={{{s}}}" },
+  { name: "Mojeek", bang: "m", url: "https://www.mojeek.com/search?q={{{s}}}" },
+];
+
 function noSearchDefaultPageRender() {
+  const LS_DEFAULT_ENGINE = localStorage.getItem("default-engine") ?? "g";
+  
   const app = document.querySelector<HTMLDivElement>("#app")!;
   app.innerHTML = `
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
       <div class="content-container">
         <h1>Und*ck</h1>
         <p>DuckDuckGo's bang redirects are too slow. Add the following URL as a custom search engine to your browser. Enables <a href="https://duckduckgo.com/bang.html" target="_blank">all of DuckDuckGo's bangs.</a></p>
+        
+        <div class="engine-selector-container">
+          <label for="default-engine">Default Search Engine:</label>
+          <select id="default-engine" class="engine-selector">
+            ${searchEngines.map(engine => 
+              `<option value="${engine.bang}" ${engine.bang === LS_DEFAULT_ENGINE ? 'selected' : ''}>
+                ${engine.name}
+              </option>`
+            ).join('')}
+          </select>
+        </div>
+        
         <div class="url-container"> 
           <input 
             type="text" 
@@ -18,6 +46,16 @@ function noSearchDefaultPageRender() {
           <button class="copy-button">
             <img src="/clipboard.svg" alt="Copy" />
           </button>
+        </div>
+        
+        <div class="instructions">
+          <p><strong>How to use:</strong></p>
+          <ul>
+            <li>Set your default search engine above</li>
+            <li>Copy the URL and add it as a custom search engine in your browser</li>
+            <li>Use bangs like <code>!gh</code> for GitHub, <code>!w</code> for Wikipedia, etc.</li>
+            <li>Your default engine will be used when no bang is specified</li>
+          </ul>
         </div>
       </div>
       <footer class="footer">
@@ -33,6 +71,7 @@ function noSearchDefaultPageRender() {
   const copyButton = app.querySelector<HTMLButtonElement>(".copy-button")!;
   const copyIcon = copyButton.querySelector("img")!;
   const urlInput = app.querySelector<HTMLInputElement>(".url-input")!;
+  const engineSelector = app.querySelector<HTMLSelectElement>("#default-engine")!;
 
   copyButton.addEventListener("click", async () => {
     await navigator.clipboard.writeText(urlInput.value);
@@ -42,10 +81,19 @@ function noSearchDefaultPageRender() {
       copyIcon.src = "/clipboard.svg";
     }, 2000);
   });
+
+  engineSelector.addEventListener("change", () => {
+    localStorage.setItem("default-engine", engineSelector.value);
+  });
 }
 
 const LS_DEFAULT_BANG = localStorage.getItem("default-bang") ?? "g";
 const defaultBang = bangs.find((b) => b.t === LS_DEFAULT_BANG);
+
+// Get the default search engine from localStorage
+const LS_DEFAULT_ENGINE = localStorage.getItem("default-engine") ?? "g";
+// Find the default search engine URL pattern
+const defaultEngine = searchEngines.find(engine => engine.bang === LS_DEFAULT_ENGINE) || searchEngines[0];
 
 function getBangredirectUrl() {
   const url = new URL(window.location.href);
@@ -58,18 +106,35 @@ function getBangredirectUrl() {
   const match = query.match(/!(\S+)/i);
 
   const bangCandidate = match?.[1]?.toLowerCase();
-  const selectedBang = bangs.find((b) => b.t === bangCandidate) ?? defaultBang;
+  
+  // Check if the bang is a search engine bang first
+  const searchEngine = searchEngines.find(engine => engine.bang === bangCandidate);
+  const selectedBang = bangs.find((b) => b.t === bangCandidate);
+  
+  // If it's a search engine bang, use that; otherwise use the regular bang or default
+  const finalBang = searchEngine ? { u: searchEngine.url } : (selectedBang ?? { u: defaultEngine.url });
 
   // Remove the first bang from the query
   const cleanQuery = query.replace(/!\S+\s*/i, "").trim();
 
   // If the query is just `!gh`, use `github.com` instead of `github.com/search?q=`
-  if (cleanQuery === "")
-    return selectedBang ? `https://${selectedBang.d}` : null;
+  if (cleanQuery === "") {
+    if (searchEngine) {
+      // For search engines, we still need a query, so we'll return null to show the default page
+      noSearchDefaultPageRender();
+      return null;
+    } else if (selectedBang) {
+      return `https://${selectedBang.d}`;
+    } else {
+      // For default search engine with no query, show the default page
+      noSearchDefaultPageRender();
+      return null;
+    }
+  }
 
   // Format of the url is:
   // https://www.google.com/search?q={{{s}}}
-  const searchUrl = selectedBang?.u.replace(
+  const searchUrl = finalBang.u.replace(
     "{{{s}}}",
     // Replace %2F with / to fix formats like "!ghr+t3dotgg/unduck"
     encodeURIComponent(cleanQuery).replace(/%2F/g, "/"),

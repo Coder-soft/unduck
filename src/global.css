@@ -93,6 +93,58 @@ textarea {
   padding: 0 8px;
 }
 
+/* Engine selector styles */
+.engine-selector-container {
+  margin: 20px 0;
+  text-align: left;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.engine-selector-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.engine-selector {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f5f5f5;
+  font-size: 16px;
+}
+
+/* Instructions styles */
+.instructions {
+  margin-top: 20px;
+  text-align: left;
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.instructions ul {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+.instructions li {
+  margin-bottom: 8px;
+}
+
+.instructions code {
+  background: #eee;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
 /* Update url-input width to be 100% since container will control max width */
 .url-input {
   padding: 8px 12px;
@@ -180,6 +232,20 @@ textarea {
     border-color: #3d3d3d;
     background-color: #191919;
     color: #fff;
+  }
+
+  .engine-selector {
+    border-color: #3d3d3d;
+    background-color: #191919;
+    color: #fff;
+  }
+
+  .instructions {
+    background: #1e1e1e;
+  }
+
+  .instructions code {
+    background: #333;
   }
 
   .copy-button img {

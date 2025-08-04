@@ -64,16 +64,6 @@ export function noSearchDefaultPageRender() {
             <button id="cancel-custom-engine" class="cancel-engine-button">Cancel</button>
           </div>
         </div>
-        
-        <div class="instructions">
-          <p><strong>How to use:</strong></p>
-          <ul>
-            <li>Set your default search engine above</li>
-            <li>Copy the URL and add it as a custom search engine in your browser</li>
-            <li>Use bangs like <code>!gh</code> for GitHub, <code>!w</code> for Wikipedia, etc.</li>
-            <li>Your default engine will be used when no bang is specified</li>
-          </ul>
-        </div>
       </div>
       <footer class="footer">
         <a href="https://t3.chat" target="_blank">t3.chat</a>

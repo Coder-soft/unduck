@@ -117,33 +117,7 @@ textarea {
   font-size: 16px;
 }
 
-/* Instructions styles */
-.instructions {
-  margin-top: 20px;
-  text-align: left;
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 4px;
-  max-width: 36rem;
-  margin-left: auto;
-  margin-right: auto;
-}
 
-.instructions ul {
-  padding-left: 20px;
-  margin: 10px 0;
-}
-
-.instructions li {
-  margin-bottom: 8px;
-}
-
-.instructions code {
-  background: #eee;
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: monospace;
-}
 
 /* Update url-input width to be 100% since container will control max width */
 .url-input {
@@ -308,13 +282,7 @@ textarea {
     color: #fff;
   }
 
-  .instructions {
-    background: #1e1e1e;
-  }
 
-  .instructions code {
-    background: #333;
-  }
 
   .copy-button img {
     filter: invert(1);
